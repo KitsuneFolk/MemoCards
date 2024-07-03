@@ -5,12 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.graphics.Color
 import com.pandacorp.memocards.ui.theme.MemoCardsTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,29 +16,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MemoCardsTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                // Note the use of Surface as a parent container
+                Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF0f1418)) {
+                    HomeScreen(onStartClick={}, onAddCardClick={})
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MemoCardsTheme {
-        Greeting("Android")
     }
 }
