@@ -22,7 +22,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -43,7 +45,7 @@ import kotlin.math.absoluteValue
 
 @Composable
 fun CardsScreen(cards: List<Card>, onClose: () -> Unit) {
-    var currentCardIndex by remember { mutableIntStateOf(0) }
+    var currentIndex by remember { mutableIntStateOf(0) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Close button
@@ -69,26 +71,26 @@ fun CardsScreen(cards: List<Card>, onClose: () -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             cards.asReversed().take(3).reversed().forEachIndexed { index, card ->
-                val cardIndex = currentCardIndex + index
+                val cardIndex = currentIndex + index
                 if (cardIndex < cards.size) {
-                    SwipeableCard(
-                        card = cards[cardIndex],
-                        onSwiped = {
-                            if (currentCardIndex < cards.size - 1) {
-                                currentCardIndex++
-                            }
-                        },
-                        isTopCard = index == 0, // Add this parameter
-                        modifier = Modifier
-                            .padding(bottom = (index * 16).dp)
-                            .zIndex(100f - index.toFloat())
-                    )
+                    key(cardIndex) {
+                        SwipeableCard(
+                            card = cards[cardIndex],
+                            onSwiped = {
+                                currentIndex++
+                            },
+                            isTopCard = index == 0,
+                            modifier = Modifier
+                                .padding(bottom = (index * 16).dp)
+                                .zIndex(100f - index.toFloat())
+                        )
+                    }
                 }
             }
         }
 
         // Completion message
-        if (currentCardIndex >= cards.size) {
+        if (currentIndex >= cards.size) {
             Text(
                 "All cards completed!",
                 modifier = Modifier.align(Alignment.Center),
@@ -114,6 +116,14 @@ fun SwipeableCard(
 
     val rotation by animateFloatAsState(targetValue = offsetX * 0.1f, label = "rotation")
 
+    // Reset offset when the card becomes the top card
+    LaunchedEffect(isTopCard) {
+        if (isTopCard) {
+            offsetX = 0f
+            offsetY = 0f
+        }
+    }
+
     // Action text alpha animations
     val rightAlpha by animateFloatAsState(
         targetValue = if (isTopCard && offsetX > horizontalMinSwipeDistance && offsetY.absoluteValue < verticalMinSwipeDistance) 1f else 0f,
@@ -134,8 +144,8 @@ fun SwipeableCard(
             .fillMaxHeight(0.7f)
             .offset { IntOffset(offsetX.toInt(), offsetY.toInt()) }
             .rotate(rotation)
-            .pointerInput(Unit) {
-                if (isTopCard) { // Only allow swiping for the top card
+            .pointerInput(isTopCard) {
+                if (isTopCard) {
                     detectDragGestures(
                         onDragEnd = {
                             when {
