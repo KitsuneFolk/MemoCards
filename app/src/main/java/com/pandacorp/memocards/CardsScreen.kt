@@ -81,7 +81,7 @@ fun CardsScreen(cards: List<Card>, onClose: () -> Unit) {
                             },
                             isTopCard = index == 0,
                             modifier = Modifier
-                                .padding(bottom = (index * 16).dp)
+                                .padding(bottom = (index * 32).dp)
                                 .zIndex(100f - index.toFloat())
                         )
                     }
