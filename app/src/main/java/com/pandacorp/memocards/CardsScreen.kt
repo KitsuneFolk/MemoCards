@@ -115,8 +115,8 @@ fun CardsScreen(cards: List<Card>, onClose: () -> Unit) {
     }
 }
 
-private const val horizontalMinSwipeDistance = 50
-private const val verticalMinSwipeDistance = 50
+private const val HORIZONTAL_MIN_SWIPE_DISTANCE = 50
+private const val VERTICAL_MIN_SWIPE_DISTANCE = 50
 
 private const val AUTO_SWIPE_DURATION = 600
 
@@ -156,8 +156,8 @@ fun SwipeableCard(
     }
 
     // Calculate alpha values based on swipe direction and distance
-    val horizontalAlpha = (offsetX.absoluteValue / horizontalMinSwipeDistance).coerceIn(0f, 1f)
-    val verticalAlpha = (offsetY.absoluteValue / verticalMinSwipeDistance).coerceIn(0f, 1f)
+    val horizontalAlpha = (offsetX.absoluteValue / HORIZONTAL_MIN_SWIPE_DISTANCE).coerceIn(0f, 1f)
+    val verticalAlpha = (offsetY.absoluteValue / VERTICAL_MIN_SWIPE_DISTANCE).coerceIn(0f, 1f)
 
     val rightAlpha = if (offsetX > 0) horizontalAlpha * (1 - verticalAlpha) else 0f
     val leftAlpha = if (offsetX < 0) horizontalAlpha * (1 - verticalAlpha) else 0f
@@ -179,9 +179,9 @@ fun SwipeableCard(
                     detectDragGestures(
                         onDragEnd = {
                             swipeDirection = when {
-                                offsetX > horizontalMinSwipeDistance && offsetY.absoluteValue < verticalMinSwipeDistance -> SwipeDirection.RIGHT
-                                offsetX < -horizontalMinSwipeDistance && offsetY.absoluteValue < verticalMinSwipeDistance -> SwipeDirection.LEFT
-                                offsetY > verticalMinSwipeDistance && offsetX.absoluteValue < horizontalMinSwipeDistance -> SwipeDirection.DOWN
+                                offsetX > HORIZONTAL_MIN_SWIPE_DISTANCE && offsetY.absoluteValue < VERTICAL_MIN_SWIPE_DISTANCE -> SwipeDirection.RIGHT
+                                offsetX < -HORIZONTAL_MIN_SWIPE_DISTANCE && offsetY.absoluteValue < VERTICAL_MIN_SWIPE_DISTANCE -> SwipeDirection.LEFT
+                                offsetY > VERTICAL_MIN_SWIPE_DISTANCE && offsetX.absoluteValue < HORIZONTAL_MIN_SWIPE_DISTANCE -> SwipeDirection.DOWN
                                 else -> null
                             }
                             swipeDirection?.let { onSwiped(it) } ?: run {
