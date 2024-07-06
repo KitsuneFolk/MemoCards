@@ -124,19 +124,13 @@ fun SwipeableCard(
         }
     }
 
-    // Action text alpha animations
-    val rightAlpha by animateFloatAsState(
-        targetValue = if (isTopCard && offsetX > horizontalMinSwipeDistance && offsetY.absoluteValue < verticalMinSwipeDistance) 1f else 0f,
-        label = "rightAlpha"
-    )
-    val leftAlpha by animateFloatAsState(
-        targetValue = if (isTopCard && offsetX < -horizontalMinSwipeDistance && offsetY.absoluteValue < verticalMinSwipeDistance) 1f else 0f,
-        label = "leftAlpha"
-    )
-    val bottomAlpha by animateFloatAsState(
-        targetValue = if (isTopCard && offsetY > verticalMinSwipeDistance && offsetX.absoluteValue < horizontalMinSwipeDistance) 1f else 0f,
-        label = "bottomAlpha"
-    )
+    // Calculate alpha values based on swipe direction and distance
+    val horizontalAlpha = (offsetX.absoluteValue / horizontalMinSwipeDistance).coerceIn(0f, 1f)
+    val verticalAlpha = (offsetY.absoluteValue / verticalMinSwipeDistance).coerceIn(0f, 1f)
+
+    val rightAlpha = if (offsetX > 0) horizontalAlpha * (1 - verticalAlpha) else 0f
+    val leftAlpha = if (offsetX < 0) horizontalAlpha * (1 - verticalAlpha) else 0f
+    val bottomAlpha = if (offsetY > 0) verticalAlpha * (1 - horizontalAlpha) else 0f
 
     Card(
         modifier = modifier
@@ -152,6 +146,7 @@ fun SwipeableCard(
                                 offsetX > horizontalMinSwipeDistance && offsetY.absoluteValue < verticalMinSwipeDistance -> onSwiped()
                                 offsetX < -horizontalMinSwipeDistance && offsetY.absoluteValue < verticalMinSwipeDistance -> onSwiped()
                                 offsetY > verticalMinSwipeDistance && offsetX.absoluteValue < horizontalMinSwipeDistance -> onSwiped()
+                                offsetY < -verticalMinSwipeDistance && offsetX.absoluteValue < horizontalMinSwipeDistance -> onSwiped()
                                 else -> {
                                     offsetX = 0f
                                     offsetY = 0f
