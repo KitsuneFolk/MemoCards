@@ -1,6 +1,7 @@
 package com.pandacorp.memocards
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +28,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,11 +44,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.pandacorp.memocards.ui.theme.MemoCardsTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
 @Composable
 fun CardsScreen(cards: List<Card>, onClose: () -> Unit) {
     var currentIndex by remember { mutableIntStateOf(0) }
+    var animatingCardIndex by remember { mutableStateOf<Int?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Close button
@@ -63,7 +70,6 @@ fun CardsScreen(cards: List<Card>, onClose: () -> Unit) {
             )
         }
 
-        // Cards
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -76,10 +82,18 @@ fun CardsScreen(cards: List<Card>, onClose: () -> Unit) {
                     key(cardIndex) {
                         SwipeableCard(
                             card = cards[cardIndex],
-                            onSwiped = {
-                                currentIndex++
+                            onSwiped = { direction ->
+                                animatingCardIndex = cardIndex
+                                // Use coroutineScope to call the suspend function
+                                coroutineScope.launch {
+                                    direction.animate {
+                                        currentIndex++
+                                        animatingCardIndex = null
+                                    }
+                                }
                             },
                             isTopCard = index == 0,
+                            isAnimating = cardIndex == animatingCardIndex,
                             modifier = Modifier
                                 .padding(bottom = (index * 32).dp)
                                 .zIndex(100f - index.toFloat())
@@ -104,23 +118,40 @@ fun CardsScreen(cards: List<Card>, onClose: () -> Unit) {
 private const val horizontalMinSwipeDistance = 50
 private const val verticalMinSwipeDistance = 50
 
+private const val AUTO_SWIPE_DURATION = 600
+
 @Composable
 fun SwipeableCard(
     card: Card,
-    onSwiped: () -> Unit,
+    onSwiped: (SwipeDirection) -> Unit,
     isTopCard: Boolean,
+    isAnimating: Boolean,
     modifier: Modifier = Modifier
 ) {
     var offsetX by remember { mutableFloatStateOf(0f) }
     var offsetY by remember { mutableFloatStateOf(0f) }
+    var swipeDirection by remember { mutableStateOf<SwipeDirection?>(null) }
 
     val rotation by animateFloatAsState(targetValue = offsetX * 0.1f, label = "rotation")
+
+    val animatedOffsetX by animateFloatAsState(
+        targetValue = if (isAnimating) swipeDirection?.getTargetX() ?: 0f else 0f,
+        animationSpec = tween(durationMillis = AUTO_SWIPE_DURATION),
+        label = "animatedOffsetX"
+    )
+
+    val animatedOffsetY by animateFloatAsState(
+        targetValue = if (isAnimating) swipeDirection?.getTargetY() ?: 0f else 0f,
+        animationSpec = tween(durationMillis = AUTO_SWIPE_DURATION),
+        label = "animatedOffsetY"
+    )
 
     // Reset offset when the card becomes the top card
     LaunchedEffect(isTopCard) {
         if (isTopCard) {
             offsetX = 0f
             offsetY = 0f
+            swipeDirection = null
         }
     }
 
@@ -136,27 +167,34 @@ fun SwipeableCard(
         modifier = modifier
             .fillMaxWidth(0.9f)
             .fillMaxHeight(0.7f)
-            .offset { IntOffset(offsetX.toInt(), offsetY.toInt()) }
+            .offset {
+                IntOffset(
+                    (offsetX + animatedOffsetX).toInt(),
+                    (offsetY + animatedOffsetY).toInt()
+                )
+            }
             .rotate(rotation)
             .pointerInput(isTopCard) {
                 if (isTopCard) {
                     detectDragGestures(
                         onDragEnd = {
-                            when {
-                                offsetX > horizontalMinSwipeDistance && offsetY.absoluteValue < verticalMinSwipeDistance -> onSwiped()
-                                offsetX < -horizontalMinSwipeDistance && offsetY.absoluteValue < verticalMinSwipeDistance -> onSwiped()
-                                offsetY > verticalMinSwipeDistance && offsetX.absoluteValue < horizontalMinSwipeDistance -> onSwiped()
-                                offsetY < -verticalMinSwipeDistance && offsetX.absoluteValue < horizontalMinSwipeDistance -> onSwiped()
-                                else -> {
-                                    offsetX = 0f
-                                    offsetY = 0f
-                                }
+                            swipeDirection = when {
+                                offsetX > horizontalMinSwipeDistance && offsetY.absoluteValue < verticalMinSwipeDistance -> SwipeDirection.RIGHT
+                                offsetX < -horizontalMinSwipeDistance && offsetY.absoluteValue < verticalMinSwipeDistance -> SwipeDirection.LEFT
+                                offsetY > verticalMinSwipeDistance && offsetX.absoluteValue < horizontalMinSwipeDistance -> SwipeDirection.DOWN
+                                else -> null
+                            }
+                            swipeDirection?.let { onSwiped(it) } ?: run {
+                                offsetX = 0f
+                                offsetY = 0f
                             }
                         }
                     ) { change, dragAmount ->
                         change.consume()
-                        offsetX += dragAmount.x
-                        offsetY += dragAmount.y
+                        if (!isAnimating) {
+                            offsetX += dragAmount.x
+                            offsetY += dragAmount.y
+                        }
                     }
                 }
             },
@@ -244,6 +282,25 @@ fun SwipeableCard(
     }
 }
 
+enum class SwipeDirection {
+    LEFT, RIGHT, DOWN;
+
+    fun getTargetX() = when (this) {
+        LEFT -> -2000f
+        RIGHT -> 2000f
+        else -> 0f
+    }
+
+    fun getTargetY() = when (this) {
+        DOWN -> 2000f
+        else -> 0f
+    }
+
+    suspend fun animate(onComplete: () -> Unit) {
+        delay(200L)
+        onComplete()
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
