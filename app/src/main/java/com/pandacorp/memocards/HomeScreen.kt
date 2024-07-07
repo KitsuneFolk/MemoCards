@@ -85,32 +85,43 @@ fun ProgressCards(toLearn: Int, known: Int, learned: Int) {
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceAround
     ) {
-        StatusCard(count = toLearn, label = "Learning")
-        StatusCard(count = known, label = "Known")
-        StatusCard(count = learned, label = "Learned")
+        StatusCard(count = toLearn, label = "Learning", color = Color(0xFF41af41))
+        StatusCard(count = known, label = "Known", color = Color(0xFF2795c6))
+        StatusCard(count = learned, label = "Learned", color = Color(0xFFdfb63a))
     }
 }
 
 @Composable
-fun StatusCard(count: Int, label: String) {
+fun StatusCard(count: Int, label: String, color: Color) {
     Card(
         modifier = Modifier
-            .width(100.dp)
+            .width(150.dp)
             .padding(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF0d0d0d))
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
+                .padding(12.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = count.toString(), fontSize = 20.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = label, fontSize = 14.sp, textAlign = TextAlign.Center)
+                Text(
+                    text = count.toString(),
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    color = color
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = label,
+                    fontSize = 21.sp,
+                    textAlign = TextAlign.Center,
+                    color = color
+                )
             }
         }
     }
