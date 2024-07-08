@@ -120,15 +120,15 @@ fun StatusCard(count: Int, label: String, color: Color) {
             ) {
                 Text(
                     text = count.toString(),
-                    fontSize = 30.sp,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     color = color
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(5.dp))
                 Text(
                     text = label,
-                    fontSize = 21.sp,
+                    fontSize = 16.sp,
                     textAlign = TextAlign.Center,
                     color = color
                 )
