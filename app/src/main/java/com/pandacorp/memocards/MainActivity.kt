@@ -63,9 +63,10 @@ fun AppNavigation(repository: CardRepository) {
         }
         composable("addCard") {
             AddCardScreen(
-                onSaveCard = { front, back ->
+                onSaveCard = { front, back, details ->
                     // Use a coroutine scope to insert the card
                     CoroutineScope(Dispatchers.IO).launch {
+                        //TODO: Add details
                         repository.insertCard(CardEntity(front = front, back = back))
                     }
                     navController.popBackStack()
