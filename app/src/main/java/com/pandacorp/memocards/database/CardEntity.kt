@@ -7,5 +7,10 @@ import androidx.room.PrimaryKey
 data class CardEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val front: String,
-    val back: String
+    val back: String,
+    val status: CardStatus = CardStatus.TO_LEARN
 )
+
+enum class CardStatus {
+    TO_LEARN, KNOWN, LEARNED
+}

@@ -24,19 +24,25 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.pandacorp.memocards.ui.theme.MemoCardsTheme
+import com.pandacorp.memocards.viewmodel.HomeViewModel
 
 @Composable
-fun HomeScreen(onStartClick: () -> Unit, onAddCardClick: () -> Unit) {
+fun HomeScreen(
+    viewModel: HomeViewModel,
+    onStartClick: () -> Unit,
+    onAddCardClick: () -> Unit
+) {
+    val cardCounts by viewModel.cardCounts.collectAsState()
     Scaffold(
         containerColor = Color(0xFF0f1418),
         contentColor = Color.White,
@@ -60,7 +66,11 @@ fun HomeScreen(onStartClick: () -> Unit, onAddCardClick: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(16.dp))
-            ProgressCards(toLearn = 9, known = 0, learned = 0)
+            ProgressCards(
+                toLearn = cardCounts.toLearn,
+                known = cardCounts.known,
+                learned = cardCounts.learned
+            )
             Spacer(modifier = Modifier.weight(1f))
             Button(
                 onClick = onStartClick,
@@ -124,13 +134,5 @@ fun StatusCard(count: Int, label: String, color: Color) {
                 )
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    MemoCardsTheme {
-        HomeScreen(onStartClick = {}, onAddCardClick = {})
     }
 }

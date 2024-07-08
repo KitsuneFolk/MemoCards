@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.pandacorp.memocards.database.Card
 import com.pandacorp.memocards.ui.theme.MemoCardsTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

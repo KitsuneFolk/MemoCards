@@ -1,4 +1,4 @@
-package com.pandacorp.memocards.database
+package com.pandacorp.memocards
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -39,12 +39,12 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.pandacorp.memocards.R
+import com.pandacorp.memocards.database.CardStatus
 import com.pandacorp.memocards.ui.theme.MemoCardsTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddCardScreen(onSaveCard: (front: String, back: String, details: String) -> Unit, onCancel: () -> Unit) {
+fun AddCardScreen(onSaveCard: (front: String, back: String, details: String, status: CardStatus) -> Unit, onCancel: () -> Unit) {
     var frontText by remember { mutableStateOf("") }
     var backText by remember { mutableStateOf("") }
     var detailsText by remember { mutableStateOf("") }
@@ -159,7 +159,7 @@ fun AddCardScreen(onSaveCard: (front: String, back: String, details: String) -> 
 
         // Save button
         Button(
-            onClick = { onSaveCard(frontText, backText, detailsText) },
+            onClick = { onSaveCard(frontText, backText, detailsText, CardStatus.TO_LEARN) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
@@ -174,6 +174,6 @@ fun AddCardScreen(onSaveCard: (front: String, back: String, details: String) -> 
 @Composable
 fun AddCardScreenPreview() {
     MemoCardsTheme {
-        AddCardScreen({ _, _, _ -> }, {})
+        AddCardScreen({ _, _, _, _ -> }, {})
     }
 }
