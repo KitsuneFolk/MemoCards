@@ -308,10 +308,10 @@ enum class SwipeDirection {
 fun CardsScreenPreview() {
     MemoCardsTheme {
         CardsScreen(listOf(
-            Card("Hello", "Bonjour"),
-            Card("Goodbye", "Au revoir"),
-            Card("Please", "S'il vous plaît"),
-            Card("Thank you", "Merci")
+            Card(front = "Hello", back = "Bonjour"),
+            Card(front = "Goodbye", back = "Au revoir"),
+            Card(front = "Please", back = "S'il vous plaît"),
+            Card(front = "Thank you", back = "Merci")
         ), {})
     }
 }

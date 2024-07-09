@@ -15,7 +15,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.pandacorp.memocards.database.Card
 import com.pandacorp.memocards.database.CardDatabase
 import com.pandacorp.memocards.database.CardEntity
 import com.pandacorp.memocards.database.CardRepository
@@ -66,7 +65,7 @@ fun AppNavigation(repository: CardRepository, homeViewModel: HomeViewModel) {
         composable("cards") {
             val cards by repository.allCards.collectAsState(initial = emptyList())
             CardsScreen(
-                cards = cards.map { Card(it.front, it.back) },
+                cards = cards,
                 onClose = { navController.popBackStack() }
             )
         }
@@ -74,7 +73,7 @@ fun AppNavigation(repository: CardRepository, homeViewModel: HomeViewModel) {
             AddCardScreen(
                 onSaveCard = { front, back, details, status ->
                     CoroutineScope(Dispatchers.IO).launch {
-                        repository.insertCard(CardEntity(front = front, back = back, status = status))
+                        repository.insertCard(CardEntity(front = front, back = back, details = details, status = status))
                     }
                     navController.popBackStack()
                 },
