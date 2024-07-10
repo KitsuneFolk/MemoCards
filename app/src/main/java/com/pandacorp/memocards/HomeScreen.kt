@@ -48,13 +48,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
 import com.pandacorp.memocards.database.Card
+import com.pandacorp.memocards.database.CardDatabase
+import com.pandacorp.memocards.database.CardRepository
 import com.pandacorp.memocards.database.CardStatus
+import com.pandacorp.memocards.ui.theme.MemoCardsTheme
 import com.pandacorp.memocards.viewmodel.HomeViewModel
+import com.pandacorp.memocards.viewmodel.HomeViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -169,26 +177,25 @@ fun ProgressCards(toLearn: Int, known: Int, learned: Int) {
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 16.dp)
             .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceAround
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        StatusCard(count = toLearn, label = "Learning", color = Color(0xFF41af41))
-        StatusCard(count = known, label = "Known", color = Color(0xFF2795c6))
-        StatusCard(count = learned, label = "Learned", color = Color(0xFFdfb63a))
+        StatusCard(modifier = Modifier.weight(1f), count = toLearn, label = "Learning", color = Color(0xFF41af41))
+        StatusCard(modifier = Modifier.weight(1f), count = known, label = "Known", color = Color(0xFF2795c6))
+        StatusCard(modifier = Modifier.weight(1f), count = learned, label = "Learned", color = Color(0xFFdfb63a))
     }
 }
 
 @Composable
-fun StatusCard(count: Int, label: String, color: Color) {
+fun StatusCard(modifier: Modifier, count: Int, label: String, color: Color) {
     Card(
-        modifier = Modifier
-            .width(150.dp)
-            .padding(8.dp),
+        modifier = modifier
+            .padding(horizontal = 4.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF0d0d0d))
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(vertical = 12.dp, horizontal = 8.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -196,15 +203,15 @@ fun StatusCard(count: Int, label: String, color: Color) {
             ) {
                 Text(
                     text = count.toString(),
-                    fontSize = 24.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     color = color
                 )
-                Spacer(modifier = Modifier.height(5.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = label,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     textAlign = TextAlign.Center,
                     color = color
                 )
@@ -262,5 +269,17 @@ fun CardItem(card: Card) {
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true, device = "spec:shape=Normal,width=360,height=640,unit=dp,dpi=480")
+@Composable
+fun HomeScreenPreview() {
+    val database = CardDatabase.getDatabase(LocalContext.current)
+    val repository = CardRepository(database.cardDao())
+
+    val viewModelFactory = HomeViewModelFactory(repository)
+    MemoCardsTheme {
+        HomeScreen(ViewModelProvider(ViewModelStore(), viewModelFactory)[HomeViewModel::class.java], {}, {})
     }
 }
