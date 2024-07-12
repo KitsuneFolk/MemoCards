@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
@@ -120,6 +122,7 @@ private const val HORIZONTAL_MIN_SWIPE_DISTANCE = 50
 private const val VERTICAL_MIN_SWIPE_DISTANCE = 50
 
 private const val AUTO_SWIPE_DURATION = 600
+private const val FLIP_DURATION = 600
 
 @Composable
 fun SwipeableCard(
@@ -132,31 +135,43 @@ fun SwipeableCard(
     var offsetX by remember { mutableFloatStateOf(0f) }
     var offsetY by remember { mutableFloatStateOf(0f) }
     var swipeDirection by remember { mutableStateOf<SwipeDirection?>(null) }
+    var isFlipped by remember { mutableStateOf(false) }
 
+    // Calculates the rotation based on horizontal offset for a swipe effect
     val rotation by animateFloatAsState(targetValue = offsetX * 0.1f, label = "rotation")
 
+    // Handles the 3D flip animation of the card
+    val flipRotation by animateFloatAsState(
+        targetValue = if (isFlipped) 180f else 0f,
+        animationSpec = tween(durationMillis = FLIP_DURATION),
+        label = "flipRotation"
+    )
+
+    // Animates the card off-screen when swiped
     val animatedOffsetX by animateFloatAsState(
         targetValue = if (isAnimating) swipeDirection?.getTargetX() ?: 0f else 0f,
         animationSpec = tween(durationMillis = AUTO_SWIPE_DURATION),
         label = "animatedOffsetX"
     )
 
+    // Animates the card off-screen when swiped
     val animatedOffsetY by animateFloatAsState(
         targetValue = if (isAnimating) swipeDirection?.getTargetY() ?: 0f else 0f,
         animationSpec = tween(durationMillis = AUTO_SWIPE_DURATION),
         label = "animatedOffsetY"
     )
 
-    // Reset offset when the card becomes the top card
+    // Reset offset and flip state when the card becomes the top card
     LaunchedEffect(isTopCard) {
         if (isTopCard) {
             offsetX = 0f
             offsetY = 0f
             swipeDirection = null
+            isFlipped = false
         }
     }
 
-    // Calculate alpha values based on swipe direction and distance
+    // Calculate alpha values for swipe indicators based on swipe direction and distance
     val horizontalAlpha = (offsetX.absoluteValue / HORIZONTAL_MIN_SWIPE_DISTANCE).coerceIn(0f, 1f)
     val verticalAlpha = (offsetY.absoluteValue / VERTICAL_MIN_SWIPE_DISTANCE).coerceIn(0f, 1f)
 
@@ -164,7 +179,7 @@ fun SwipeableCard(
     val leftAlpha = if (offsetX < 0) horizontalAlpha * (1 - verticalAlpha) else 0f
     val bottomAlpha = if (offsetY > 0) verticalAlpha * (1 - horizontalAlpha) else 0f
 
-    Card(
+    Box(
         modifier = modifier
             .fillMaxWidth(0.9f)
             .fillMaxHeight(0.7f)
@@ -175,58 +190,117 @@ fun SwipeableCard(
                 )
             }
             .rotate(rotation)
-            .pointerInput(isTopCard) {
-                if (isTopCard) {
-                    detectDragGestures(
-                        onDragEnd = {
-                            swipeDirection = when {
-                                offsetX > HORIZONTAL_MIN_SWIPE_DISTANCE && offsetY.absoluteValue < VERTICAL_MIN_SWIPE_DISTANCE -> SwipeDirection.RIGHT
-                                offsetX < -HORIZONTAL_MIN_SWIPE_DISTANCE && offsetY.absoluteValue < VERTICAL_MIN_SWIPE_DISTANCE -> SwipeDirection.LEFT
-                                offsetY > VERTICAL_MIN_SWIPE_DISTANCE && offsetX.absoluteValue < HORIZONTAL_MIN_SWIPE_DISTANCE -> SwipeDirection.DOWN
-                                else -> null
-                            }
-                            swipeDirection?.let { onSwiped(it) } ?: run {
-                                offsetX = 0f
-                                offsetY = 0f
-                            }
-                        }
-                    ) { change, dragAmount ->
-                        change.consume()
-                        if (!isAnimating) {
-                            offsetX += dragAmount.x
-                            offsetY += dragAmount.y
-                        }
-                    }
-                }
-            },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0d0d0d)),
-        border = BorderStroke(2.dp, Color.White)
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
+        Card(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    // Apply 3D flip rotation
+                    rotationY = flipRotation
+                    cameraDistance = 8 * density
+                },
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF0d0d0d)),
+            border = BorderStroke(2.dp, Color.White)
         ) {
-            // Card content
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .pointerInput(isTopCard) {
+                        if (isTopCard) {
+                            detectTapGestures(
+                                onTap = {
+                                    if (!isFlipped) {
+                                        isFlipped = true
+                                    }
+                                }
+                            )
+                        }
+                    }
+                    .pointerInput(isTopCard, isFlipped) {
+                        if (isTopCard && isFlipped) {
+                            detectDragGestures(
+                                onDragEnd = {
+                                    swipeDirection = when {
+                                        offsetX < -HORIZONTAL_MIN_SWIPE_DISTANCE && offsetY.absoluteValue < VERTICAL_MIN_SWIPE_DISTANCE -> SwipeDirection.LEFT
+                                        offsetX > HORIZONTAL_MIN_SWIPE_DISTANCE && offsetY.absoluteValue < VERTICAL_MIN_SWIPE_DISTANCE -> SwipeDirection.RIGHT
+                                        offsetY > VERTICAL_MIN_SWIPE_DISTANCE && offsetX.absoluteValue < HORIZONTAL_MIN_SWIPE_DISTANCE -> SwipeDirection.DOWN
+                                        else -> null
+                                    }
+                                    swipeDirection?.let { onSwiped(it) } ?: run {
+                                        offsetX = 0f
+                                        offsetY = 0f
+                                    }
+                                }
+                            ) { change, dragAmount ->
+                                change.consume()
+                                if (!isAnimating) {
+                                    // Invert the sign for X-axis to correct swipe direction
+                                    offsetX -= dragAmount.x
+                                    offsetY += dragAmount.y
+                                }
+                            }
+                        }
+                    }
             ) {
-                Text(
-                    text = card.front,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = Color.White
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = card.back,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.LightGray
-                )
-            }
+                // Front content
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            // Control visibility of front content during flip
+                            alpha = if (flipRotation < 90f) 1f else 0f
+                        }
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = card.front,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = Color.White
+                    )
+                }
 
-            // Action texts
+                // Back content
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            // Flip back content and control its visibility during flip
+                            rotationY = 180f
+                            alpha = if (flipRotation >= 90f) 1f else 0f
+                        }
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = card.front,
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = card.back,
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = card.details,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.LightGray
+                        )
+                    }
+                }
+            }
+        }
+
+        // Action texts (only visible when flipped)
+        if (isFlipped) {
+            // "Know" indicator
             Card(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -245,6 +319,7 @@ fun SwipeableCard(
                 )
             }
 
+            // "Don't Know" indicator
             Card(
                 modifier = Modifier
                     .align(Alignment.TopStart)
@@ -263,6 +338,7 @@ fun SwipeableCard(
                 )
             }
 
+            // "Skip" indicator
             Card(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
