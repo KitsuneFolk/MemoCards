@@ -45,14 +45,14 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import com.pandacorp.memocards.database.Card
+import com.pandacorp.memocards.database.CardItem
 import com.pandacorp.memocards.ui.theme.MemoCardsTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
 @Composable
-fun CardsScreen(cards: List<Card>, onClose: () -> Unit) {
+fun CardsScreen(cardItems: List<CardItem>, onClose: () -> Unit) {
     var currentIndex by remember { mutableIntStateOf(0) }
     var animatingCardIndex by remember { mutableStateOf<Int?>(null) }
     val coroutineScope = rememberCoroutineScope()
@@ -79,12 +79,12 @@ fun CardsScreen(cards: List<Card>, onClose: () -> Unit) {
                 .padding(horizontal = 16.dp, vertical = 32.dp),
             contentAlignment = Alignment.Center
         ) {
-            cards.asReversed().take(3).reversed().forEachIndexed { index, card ->
+            cardItems.asReversed().take(3).reversed().forEachIndexed { index, card ->
                 val cardIndex = currentIndex + index
-                if (cardIndex < cards.size) {
+                if (cardIndex < cardItems.size) {
                     key(cardIndex) {
                         SwipeableCard(
-                            card = cards[cardIndex],
+                            cardItem = cardItems[cardIndex],
                             onSwiped = { direction ->
                                 animatingCardIndex = cardIndex
                                 // Use coroutineScope to call the suspend function
@@ -107,7 +107,7 @@ fun CardsScreen(cards: List<Card>, onClose: () -> Unit) {
         }
 
         // Completion message
-        if (currentIndex >= cards.size) {
+        if (currentIndex >= cardItems.size) {
             Text(
                 "All cards completed!",
                 modifier = Modifier.align(Alignment.Center),
@@ -126,7 +126,7 @@ private const val FLIP_DURATION = 600
 
 @Composable
 fun SwipeableCard(
-    card: Card,
+    cardItem: CardItem,
     onSwiped: (SwipeDirection) -> Unit,
     isTopCard: Boolean,
     isAnimating: Boolean,
@@ -254,7 +254,7 @@ fun SwipeableCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = card.front,
+                        text = cardItem.front,
                         style = MaterialTheme.typography.headlineMedium,
                         color = Color.White
                     )
@@ -277,19 +277,19 @@ fun SwipeableCard(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = card.front,
+                            text = cardItem.front,
                             style = MaterialTheme.typography.headlineMedium,
                             color = Color.White
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = card.back,
+                            text = cardItem.back,
                             style = MaterialTheme.typography.headlineSmall,
                             color = Color.White
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = card.details,
+                            text = cardItem.details,
                             style = MaterialTheme.typography.bodyLarge,
                             color = Color.LightGray
                         )
@@ -384,10 +384,10 @@ enum class SwipeDirection {
 fun CardsScreenPreview() {
     MemoCardsTheme {
         CardsScreen(listOf(
-            Card(front = "Hello", back = "Bonjour"),
-            Card(front = "Goodbye", back = "Au revoir"),
-            Card(front = "Please", back = "S'il vous plaît"),
-            Card(front = "Thank you", back = "Merci")
+            CardItem(front = "Hello", back = "Bonjour"),
+            CardItem(front = "Goodbye", back = "Au revoir"),
+            CardItem(front = "Please", back = "S'il vous plaît"),
+            CardItem(front = "Thank you", back = "Merci")
         ), {})
     }
 }

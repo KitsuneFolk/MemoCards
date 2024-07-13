@@ -4,8 +4,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class CardRepository(private val cardDao: CardDao) {
-    val allCards: Flow<List<Card>> = cardDao.getAllCards().map { entities ->
-        entities.map { it.toCard() }
+    val allCards: Flow<List<CardItem>> = cardDao.getAllCards().map { entities ->
+        entities.map { it.toCardItem() }
     }
 
     fun getCardCountByStatus(status: CardStatus): Flow<Int> =

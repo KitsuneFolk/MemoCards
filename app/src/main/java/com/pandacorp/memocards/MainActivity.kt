@@ -65,7 +65,7 @@ fun AppNavigation(repository: CardRepository, homeViewModel: HomeViewModel) {
         composable("cards") {
             val cards by repository.allCards.collectAsState(initial = emptyList())
             CardsScreen(
-                cards = cards,
+                cardItems = cards,
                 onClose = { navController.popBackStack() }
             )
         }
@@ -75,7 +75,6 @@ fun AppNavigation(repository: CardRepository, homeViewModel: HomeViewModel) {
                     CoroutineScope(Dispatchers.IO).launch {
                         repository.insertCard(CardEntity(front = front, back = back, details = details, status = status))
                     }
-                    navController.popBackStack()
                 },
                 onCancel = { navController.popBackStack() }
             )

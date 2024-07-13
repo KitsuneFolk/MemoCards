@@ -12,8 +12,8 @@ data class CardEntity(
     @ColumnInfo(name = "details") val details: String,
     @ColumnInfo(name = "status") val status: CardStatus
 ) {
-    fun toCard(): Card {
-        return Card(id, front, back, details, status)
+    fun toCardItem(): CardItem {
+        return CardItem(id, front, back, details, status)
     }
 }
 

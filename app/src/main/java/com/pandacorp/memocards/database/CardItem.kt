@@ -1,6 +1,6 @@
 package com.pandacorp.memocards.database
 
-data class Card(
+data class CardItem(
     val id: Int = -1,
     val front: String,
     val back: String,

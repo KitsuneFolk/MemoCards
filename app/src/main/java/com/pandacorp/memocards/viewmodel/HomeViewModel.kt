@@ -2,7 +2,7 @@ package com.pandacorp.memocards.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pandacorp.memocards.database.Card
+import com.pandacorp.memocards.database.CardItem
 import com.pandacorp.memocards.database.CardRepository
 import com.pandacorp.memocards.database.CardStatus
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +33,7 @@ class HomeViewModel(private val repository: CardRepository) : ViewModel() {
         }
     }
 
-    fun getFilteredCards(query: String): StateFlow<List<Card>> {
+    fun getFilteredCards(query: String): StateFlow<List<CardItem>> {
         return allCards.map { cards ->
             cards.filter { card ->
                 card.front.contains(query, ignoreCase = true) ||

@@ -56,7 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
-import com.pandacorp.memocards.database.Card
+import com.pandacorp.memocards.database.CardItem
 import com.pandacorp.memocards.database.CardDatabase
 import com.pandacorp.memocards.database.CardRepository
 import com.pandacorp.memocards.database.CardStatus
@@ -165,7 +165,7 @@ fun HomeScreen(
                 enter = expandVertically(),
                 exit = shrinkVertically()
             ) {
-                CardList(cards = filteredCards)
+                CardList(cardItems = filteredCards)
             }
         }
     }
@@ -221,20 +221,20 @@ fun StatusCard(modifier: Modifier, count: Int, label: String, color: Color) {
 }
 
 @Composable
-fun CardList(cards: List<Card>) {
+fun CardList(cardItems: List<CardItem>) {
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        items(cards) { card ->
+        items(cardItems) { card ->
             CardItem(card)
         }
     }
 }
 
 @Composable
-fun CardItem(card: Card) {
+fun CardItem(cardItem: CardItem) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -248,13 +248,13 @@ fun CardItem(card: Card) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = when (card.status) {
+                imageVector = when (cardItem.status) {
                     CardStatus.TO_LEARN -> Icons.Filled.Add
                     CardStatus.KNOWN -> Icons.Filled.Check
                     CardStatus.LEARNED -> Icons.Filled.Star
                 },
                 contentDescription = null,
-                tint = when (card.status) {
+                tint = when (cardItem.status) {
                     CardStatus.TO_LEARN -> Color(0xFF41af41)
                     CardStatus.KNOWN -> Color(0xFF2795c6)
                     CardStatus.LEARNED -> Color(0xFFdfb63a)
@@ -262,10 +262,10 @@ fun CardItem(card: Card) {
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text(text = card.front, fontWeight = FontWeight.Bold, color = Color.White)
-                Text(text = card.back, color = Color.LightGray)
-                if (card.details.isNotBlank()) {
-                    Text(text = card.details, fontSize = 12.sp, color = Color.Gray)
+                Text(text = cardItem.front, fontWeight = FontWeight.Bold, color = Color.White)
+                Text(text = cardItem.back, color = Color.LightGray)
+                if (cardItem.details.isNotBlank()) {
+                    Text(text = cardItem.details, fontSize = 12.sp, color = Color.Gray)
                 }
             }
         }
